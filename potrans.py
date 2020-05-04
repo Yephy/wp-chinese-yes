@@ -4,19 +4,13 @@ import re
 import baidu_trans
 
 class Translator:
-    def __init__(self, yandex_key, src_lang=None, dest_lang=None, src_po_file=None):
-        self.yandex_key = yandex_key
+    def __init__(self, src_lang=None, dest_lang=None, src_po_file=None):
         self.src_lang = src_lang
         self.dest_lang = dest_lang
         if src_po_file is not None:
             self.open_po_fle(src_po_file)
 
     def open_po_fle(self, po_filename):
-        """
-        Открыть po-файл
-        :param po_filename:
-        :return:
-        """
         if isinstance(po_filename, io.TextIOWrapper):
             po_filename = po_filename.name
         self.po = polib.pofile(po_filename)
