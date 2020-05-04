@@ -5,18 +5,7 @@ from yandex_translate import YandexTranslate, YandexTranslateException
 import baidu_trans
 
 class Translator:
-    """
-    Класс для перевода po-файлов
-    """
     def __init__(self, yandex_key, src_lang=None, dest_lang=None, src_po_file=None):
-        """
-        Конструктор
-        :param yandex_key: ключ для доступа к API яндекс-переводчика
-        :param src_lang: исходный язык
-        :param dest_lang: язык назначения
-        :param src_po_file: исходный po-файл
-        :return:
-        """
         self.yandex_key = yandex_key
         self.src_lang = src_lang
         self.dest_lang = dest_lang
@@ -45,15 +34,6 @@ class Translator:
         return res
 
     def _translate_str(self, text, src_lang, dest_lang, return_src_if_empty_result=True, need_print=False):
-        """
-        Перевести текстовую строку (приватный метод)
-        :param text: текст, который нужно перевести
-        :param src_lang: исходный язык
-        :param dest_lang: конечный язык
-        :param return_src_if_empty_result: вернуть исходную строку, если перевод не найден?
-        :param need_print: Выводить на экран информацию о результате перевода (для отладки)
-        :return: переведённая строка (или исходная, если перевод не найден, и return_src_if_empty_result==True)
-        """
         if not text.strip():
             return ""
 
@@ -84,13 +64,6 @@ class Translator:
         return tr_text
 
     def go_translate(self, src_lang=None, dest_lang=None, debug=False, usemsgid=False, **kwargs):
-        """
-        Запустить перевод po-файла
-        :param src_lang: исходный язык
-        :param dest_lang: конечный язык
-        :param break_on: номер строки, на которой нужно остановить процесс, используется для отладки
-        :return:
-        """
         break_on = kwargs.get("break_on", False)
         if src_lang is None:
             src_lang = self.src_lang
@@ -126,21 +99,11 @@ class Translator:
                 print("### Progress: " + str(percent) + "% ###")
 
     def save_po_file(self, dest_po_file=None):
-        """
-        Сохранить результирующий po-файл
-        :param dest_po_file: Имя файла
-        :return:
-        """
         if dest_po_file is None:
             dest_po_file = self.dest_po_file
         self.po.save(dest_po_file)
 
     def save_mo_file(self, dest_mo_file=None):
-        """
-        Сохранить mo-файл
-        :param dest_mo_file: имя файла
-        :return:
-        """
         if dest_mo_file is None:
             dest_mo_file = self.dest_mo_file
         self.po.save_as_mofile(dest_mo_file)
