@@ -104,14 +104,7 @@ class Translator:
                 break
             pos += 1
             translated = False
-            if item.msgstr:
-                item.msgstr = self._translate_str(item.msgstr, src_lang, dest_lang, True, debug)
-                translated = True
-            if item.msgstr_plural:
-                for num in item.msgstr_plural:
-                    item.msgstr_plural[num] = self._translate_str(item.msgstr_plural[num], True, debug)
-                    translated = True
-            if not translated and usemsgid:
+            if usemsgid:
                 if item.msgid:
                     item.msgstr = self._translate_str(item.msgid, src_lang, dest_lang, True, debug)
                     translated = True
@@ -119,6 +112,14 @@ class Translator:
                     for num in item.msgid_plural:
                         item.msgstr_plural[num] = self._translate_str(item.msgid_plural[num], True, debug)
                         translated = True
+            if not translated and item.msgstr:
+                item.msgstr = self._translate_str(item.msgstr, src_lang, dest_lang, True, debug)
+                translated = True
+            if item.msgstr_plural:
+                for num in item.msgstr_plural:
+                    item.msgstr_plural[num] = self._translate_str(item.msgstr_plural[num], True, debug)
+                    translated = True
+
             percent = int(pos * 100 / count)
             if percent != prev_percent:
                 prev_percent = percent
