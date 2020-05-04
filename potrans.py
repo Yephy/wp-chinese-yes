@@ -8,9 +8,9 @@ class Translator:
         self.src_lang = src_lang
         self.dest_lang = dest_lang
         if src_po_file is not None:
-            self.open_po_fle(src_po_file)
+            self.open_po_file(src_po_file)
 
-    def open_po_fle(self, po_filename):
+    def open_po_file(self, po_filename):
         if isinstance(po_filename, io.TextIOWrapper):
             po_filename = po_filename.name
         self.po = polib.pofile(po_filename)
