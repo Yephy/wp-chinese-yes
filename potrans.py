@@ -2,6 +2,7 @@ import polib
 import io
 import re
 from yandex_translate import YandexTranslate, YandexTranslateException
+import baidu_trans
 
 class Translator:
     """
@@ -64,9 +65,9 @@ class Translator:
             replacers[r] = s
             text = str(text).replace(s, r, 1)
 
-        tr = self.yandex_translate.translate(text, "{}-{}".format(self.src_lang, self.dest_lang))
-        if tr['code'] == 200 and len(tr['text']) and tr['text'][0]:
-            tr_text = tr['text'][0]
+        tr = baidu_trans.baidu_trans(text, self.src_lang, self.dest_lang)
+        if "error_code" not in tr:
+            tr_text = tr['trans_result'][0]['dst']
         else:
             tr_text = ""
 
@@ -142,4 +143,3 @@ class Translator:
         if dest_mo_file is None:
             dest_mo_file = self.dest_mo_file
         self.po.save_as_mofile(dest_mo_file)
-
