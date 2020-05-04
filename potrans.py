@@ -2,6 +2,7 @@ import polib
 import io
 import re
 import baidu_trans
+import random
 
 class Translator:
     def __init__(self, src_lang=None, dest_lang=None, src_po_file=None):
@@ -25,17 +26,23 @@ class Translator:
                     groupdict[key] = res.groupdict()[key]
         return res
 
-    def _translate_str(self, text, src_lang, dest_lang, return_src_if_empty_result=True, need_print=False):
+    def _translate_str(self, text, src_lang, dest_lang, return_src_if_empty_result=True, need_print=False, exclude=""):
         if not text.strip():
             return ""
 
         match_dict = {}
         replacers = {}
+        exclude_dict = {}
         while self.re_match("(?P<pattern>(%[sd]|&[a-z]+;|%[0-9]+))", text, match_dict):
             r = "@" + str(len(replacers) + 1)
             s = match_dict["pattern"]
             replacers[r] = s
             text = str(text).replace(s, r, 1)
+
+        # 提交翻译前过滤掉要排除的字符串
+        exclude_random = str(random.randint(0, 99999))
+        exclude_dict[exclude_random] = exclude
+        text = str(text).replace(exclude, exclude_random, 1)
 
         tr = baidu_trans.baidu_trans(text, self.src_lang, self.dest_lang)
         if "error_code" not in tr:
@@ -53,9 +60,13 @@ class Translator:
         if need_print:
             print(text + " => " + tr_text)
 
+        # 将排除的字符串替换回来
+        for (k, v) in exclude_dict.items():
+            tr_text = tr_text.replace(k, v, 1)
+
         return tr_text
 
-    def go_translate(self, src_lang=None, dest_lang=None, debug=False, usemsgid=False, **kwargs):
+    def go_translate(self, src_lang=None, dest_lang=None, debug=False, usemsgid=False, exclude="", **kwargs):
         break_on = kwargs.get("break_on", False)
         if src_lang is None:
             src_lang = self.src_lang
@@ -71,14 +82,14 @@ class Translator:
             translated = False
             if usemsgid:
                 if item.msgid:
-                    item.msgstr = self._translate_str(item.msgid, src_lang, dest_lang, True, debug)
+                    item.msgstr = self._translate_str(item.msgid, src_lang, dest_lang, True, debug, exclude)
                     translated = True
                 if item.msgid_plural:
                     for num in item.msgid_plural:
                         item.msgstr_plural[num] = self._translate_str(item.msgid_plural[num], True, debug)
                         translated = True
             if not translated and item.msgstr:
-                item.msgstr = self._translate_str(item.msgstr, src_lang, dest_lang, True, debug)
+                item.msgstr = self._translate_str(item.msgstr, src_lang, dest_lang, True, debug, exclude)
                 translated = True
             if item.msgstr_plural:
                 for num in item.msgstr_plural:
