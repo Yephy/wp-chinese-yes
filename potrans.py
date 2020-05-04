@@ -1,7 +1,6 @@
 import polib
 import io
 import re
-from yandex_translate import YandexTranslate, YandexTranslateException
 import baidu_trans
 
 class Translator:
@@ -9,7 +8,6 @@ class Translator:
         self.yandex_key = yandex_key
         self.src_lang = src_lang
         self.dest_lang = dest_lang
-        self.yandex_translate = YandexTranslate(self.yandex_key)
         if src_po_file is not None:
             self.open_po_fle(src_po_file)
 

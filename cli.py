@@ -2,7 +2,6 @@ import os
 import click
 import polib
 from potrans import Translator
-from potrans import YandexTranslateException
 
 @click.group(help="PoTranslator console tool. Used to translate *.po files."
                   + " To display help on command, use <command> --help")
