@@ -29,3 +29,9 @@ msgid ""
 "The called class %1$s extending %2$s is <strong>deprecated</strong> since "
 "version %3$s! Use %4$s instead."
 msgstr "扩展%2$s的被调用类%1$s是<strong>deprecated</strong>，因为版本是%3$s！改用%4$s。"
+
+#: 测试英文字符可否被正确输出
+msgid ""
+"Your Web Host provider may have blocked the use of mail() function on your "
+"server."
+msgstr ""
