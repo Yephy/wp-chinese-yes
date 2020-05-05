@@ -91,10 +91,10 @@ class Translator:
             if not translated and item.msgstr:
                 item.msgstr = self._translate_str(item.msgstr, src_lang, dest_lang, True, debug, exclude)
                 translated = True
-            if item.msgstr_plural:
-                item.msgstr_plural[0] = self._translate_str(item.msgstr, src_lang, dest_lang, True, debug, exclude)
-                item.msgstr_plural[1] = item.msgstr_plural[0]
-                translated = True
+                if item.msgstr_plural:
+                    item.msgstr_plural[0] = self._translate_str(item.msgstr, src_lang, dest_lang, True, debug, exclude)
+                    item.msgstr_plural[1] = item.msgstr_plural[0]
+                    translated = True
 
             percent = int(pos * 100 / count)
             if percent != prev_percent:
