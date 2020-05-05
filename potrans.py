@@ -4,6 +4,7 @@ import re
 import baidu_trans
 import random
 
+
 class Translator:
     def __init__(self, src_lang=None, dest_lang=None, src_po_file=None):
         self.src_lang = src_lang
@@ -16,33 +17,24 @@ class Translator:
             po_filename = po_filename.name
         self.po = polib.pofile(po_filename)
 
-    def re_match(self, expr, text, groupdict=None):
-        res = re.match(expr, text)
-        if groupdict is not None:
-            assert isinstance(groupdict, dict)
-            groupdict.clear()
-            if res is not None:
-                for key in res.groupdict():
-                    groupdict[key] = res.groupdict()[key]
-        return res
-
     def _translate_str(self, text, src_lang, dest_lang, return_src_if_empty_result=True, need_print=False, exclude=""):
         if not text.strip():
             return ""
 
-        match_dict = {}
         replacers = {}
         exclude_dict = {}
-        while self.re_match("(?P<pattern>(%[sd]|&[a-z]+;|%[0-9]+))", text, match_dict):
-            r = "@" + str(len(replacers) + 1)
-            s = match_dict["pattern"]
-            replacers[r] = s
-            text = str(text).replace(s, r, 1)
+        match_list = re.findall("%[sd]|&[a-z]+;|%[0-9]+|\[.+\]|<.+?>", text)
+        if match_list is not None:
+            for value in match_list:
+                exclude_dict[str(random.randint(0, 264308))] = value
 
-        # 提交翻译前过滤掉要排除的字符串
-        exclude_random = str(random.randint(0, 99999))
-        exclude_dict[exclude_random] = exclude
-        text = str(text).replace(exclude, exclude_random, 1)
+        for (k, v) in exclude_dict.items():
+            text = str(text).replace(v, k)
+
+        if exclude != "":
+            random_str = str(random.randint(0, 99999))
+            exclude_dict[random_str] = exclude
+            text = str(text).replace(exclude, random_str)
 
         tr = baidu_trans.baidu_trans(text, self.src_lang, self.dest_lang)
         if "error_code" not in tr:
@@ -62,7 +54,7 @@ class Translator:
 
         # 将排除的字符串替换回来
         for (k, v) in exclude_dict.items():
-            tr_text = tr_text.replace(k, v, 1)
+            tr_text = tr_text.replace(k, v)
 
         return tr_text
 
