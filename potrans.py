@@ -1,3 +1,5 @@
+import unicodedata
+
 import polib
 import io
 import re
@@ -21,7 +23,6 @@ class Translator:
         if not text.strip():
             return ""
 
-        replacers = {}
         exclude_dict = {}
         match_list = re.findall(r"%[sd]|&[a-z]+;|%[0-9]+{\$s}|\[.+\]|<.+?>|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", text)
         if match_list is not None:
@@ -48,11 +49,10 @@ class Translator:
         if need_print:
             print(text + " => " + tr_text)
 
-        # 将排除的字符串替换回来
         for (k, v) in exclude_dict.items():
             tr_text = tr_text.replace(k[1:len(k)-1], v)
 
-        return tr_text
+        return unicodedata.normalize('NFKC', tr_text)
 
     def go_translate(self, src_lang=None, dest_lang=None, debug=False, usemsgid=False, exclude="", **kwargs):
         break_on = kwargs.get("break_on", False)
