@@ -1,0 +1,21 @@
+#: 测试短代码
+msgid "this is shot code:[video play]"
+msgstr ""
+
+#: 测试带%s的短句
+msgid "%s cannot be optimized."
+msgstr ""
+
+#: 测试复数型式
+msgid "%s file could not be deleted."
+msgid_plural "%s files could not be deleted."
+msgstr[0] ""
+msgstr[1] ""
+
+#: 测试HTML标签
+msgid "this is html tag:<a href=\"www.baidu.com\" style=\"color:red;\">setting</>"
+msgstr ""
+
+#: 测试通过msgstr翻译
+msgid ""
+msgstr "this is html tag:<a href=\"www.baidu.com\" style=\"color:red;\">setting</>"
