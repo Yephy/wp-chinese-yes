@@ -19,3 +19,13 @@ msgstr ""
 #: 测试通过msgstr翻译
 msgid ""
 msgstr "this is html tag:<a href=\"www.baidu.com\" style=\"color:red;\">setting</>"
+
+#: 测试URL
+msgid "https://en.wikipedia.org/wiki/Exchangeable_image_file_format"
+msgstr "https://en.wikipedia.org/wiki/exchangable图像文件格式"
+
+#: 测试嵌入复杂数据的内容
+msgid ""
+"The called class %1$s extending %2$s is <strong>deprecated</strong> since "
+"version %3$s! Use %4$s instead."
+msgstr "扩展%2$s的被调用类%1$s是<strong>deprecated</strong>，因为版本是%3$s！改用%4$s。"
