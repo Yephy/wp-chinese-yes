@@ -20,10 +20,8 @@ def cli():
 @click.option("--output_mo", "-om", type=click.Path(file_okay=True, writable=True, dir_okay=False),
               help="Output *.mo file to write to")
 @click.option("--debug/--no-debug", default=False, help="Display debug information")
-@click.option("--usemsgid/--dont-usemsgid", default=False,
-              help="In case, where is no translated string (msgstr), use source one (msgid)")
 @click.option("--exclude", "-e", default="", help="排除不翻译的关键字，不区分大小写")
-def translate(input_po, input_lang, output_lang, output_po="", output_mo="", debug=False, usemsgid=False, exclude=""):
+def translate(input_po, input_lang, output_lang, output_po="", output_mo="", debug=False, exclude=""):
     if not input_po:
         print("No --input_po specified")
         return
@@ -37,7 +35,7 @@ def translate(input_po, input_lang, output_lang, output_po="", output_mo="", deb
         print("DBG: mode translate")
     t = Translator(input_lang, output_lang, input_po)
     print("Translating from {} to {}...".format(input_lang, output_lang))
-    t.go_translate(input_lang, output_lang, debug, usemsgid, exclude)
+    t.go_translate(input_lang, output_lang, debug, exclude)
     print("Translation finished")
 
     if output_po:

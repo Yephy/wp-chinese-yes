@@ -54,7 +54,7 @@ class Translator:
 
         return unicodedata.normalize('NFKC', tr_text)
 
-    def go_translate(self, src_lang=None, dest_lang=None, debug=False, usemsgid=False, exclude="", **kwargs):
+    def go_translate(self, src_lang=None, dest_lang=None, debug=False, exclude="", **kwargs):
         break_on = kwargs.get("break_on", False)
         if src_lang is None:
             src_lang = self.src_lang
@@ -68,14 +68,13 @@ class Translator:
                 break
             pos += 1
             translated = False
-            if usemsgid:
-                if item.msgid:
-                    item.msgstr = self._translate_str(item.msgid, src_lang, dest_lang, True, debug, exclude)
-                    translated = True
-                if item.msgid_plural:
-                    item.msgstr_plural[0] = self._translate_str(item.msgid, src_lang, dest_lang, True, debug, exclude)
-                    item.msgstr_plural[1] = item.msgstr_plural[0]
-                    translated = True
+            if item.msgid:
+                item.msgstr = self._translate_str(item.msgid, src_lang, dest_lang, True, debug, exclude)
+                translated = True
+            if item.msgid_plural:
+                item.msgstr_plural[0] = self._translate_str(item.msgid, src_lang, dest_lang, True, debug, exclude)
+                item.msgstr_plural[1] = item.msgstr_plural[0]
+                translated = True
             if not translated and item.msgstr:
                 item.msgstr = self._translate_str(item.msgstr, src_lang, dest_lang, True, debug, exclude)
                 if item.msgstr_plural:
