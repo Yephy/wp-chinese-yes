@@ -23,7 +23,7 @@ class Translator:
 
         replacers = {}
         exclude_dict = {}
-        match_list = re.findall("%[sd]|&[a-z]+;|%[0-9]+|\[.+\]|<.+?>", text)
+        match_list = re.findall(r"%[sd]|&[a-z]+;|%[0-9]+|\[.+\]|<.+?>|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", text)
         if match_list is not None:
             for value in match_list:
                 exclude_dict[str(random.randint(0, 264308))] = value
