@@ -45,10 +45,6 @@ class Translator:
         if not tr_text and return_src_if_empty_result:
             tr_text = text
 
-        if len(replacers) > 0:
-            for r, s in replacers.items():
-                tr_text = tr_text.replace(r, s)
-
         if need_print:
             print(text + " => " + tr_text)
 
@@ -92,11 +88,7 @@ class Translator:
                 print("### Progress: " + str(percent) + "% ###")
 
     def save_po_file(self, dest_po_file=None):
-        if dest_po_file is None:
-            dest_po_file = self.dest_po_file
         self.po.save(dest_po_file)
 
     def save_mo_file(self, dest_mo_file=None):
-        if dest_mo_file is None:
-            dest_mo_file = self.dest_mo_file
         self.po.save_as_mofile(dest_mo_file)
