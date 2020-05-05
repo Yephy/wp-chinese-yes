@@ -26,7 +26,7 @@ class Translator:
         match_list = re.findall(r"%[sd]|&[a-z]+;|%[0-9]+{\$s}|\[.+\]|<.+?>|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", text)
         if match_list is not None:
             for value in match_list:
-                exclude_dict[str(random.randint(0, 264308))] = value
+                exclude_dict[" "+str(random.randint(0, 264308))+" "] = value
 
         for (k, v) in exclude_dict.items():
             text = str(text).replace(v, k)
@@ -50,7 +50,7 @@ class Translator:
 
         # 将排除的字符串替换回来
         for (k, v) in exclude_dict.items():
-            tr_text = tr_text.replace(k, v)
+            tr_text = tr_text.replace(k[1:len(k)-1], v)
 
         return tr_text
 
