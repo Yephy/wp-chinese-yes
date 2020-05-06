@@ -13,8 +13,8 @@ def cli():
 @cli.command(help="Translate source *.po file from one language to another, and save result as *.po or *.mo file")
 @click.option("--input_po", "-i", type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
               help="Input *.po file to open")
-@click.option("--input_lang", "-il", type=click.STRING, help="Source language code (for ex.: ru, en, fr, de)")
-@click.option("--output_lang", "-ol", type=click.STRING, help="Destination language code (for ex.: ru, en, fr, de)")
+@click.option("--input_lang", "-il", default="auto", type=click.STRING, help="Source language code (for ex.: auto, ru, en, fr, de)")
+@click.option("--output_lang", "-ol", default="zh", type=click.STRING, help="Destination language code (for ex.: zh, ru, en, fr, de)")
 @click.option("--output_po", "-o", type=click.Path(file_okay=True, writable=True, dir_okay=False),
               help="Output *.po file to write to")
 @click.option("--output_mo", "-om", type=click.Path(file_okay=True, writable=True, dir_okay=False),
