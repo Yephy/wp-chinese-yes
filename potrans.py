@@ -17,20 +17,22 @@ class Translator:
             po_filename = po_filename.name
         self.po = polib.pofile(po_filename)
 
-    def _translate_str(self, text, return_src_if_empty_result=True, exclude=""):
+    def _translate_str(self, text, return_src_if_empty_result=True, exclude=None):
         if not text.strip():
             return ""
 
         exclude_dict = {}
-        match_list = re.findall(r"%[sd]|&[a-z]+;|%[0-9]+{\$s}|\[.+\]|<.+?>|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", text)
+        match_list = re.findall(
+            r"%[sd]|&[a-z]+;|%[0-9]+{\$s}|\[.+\]|<.+?>|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
+            text)
         if match_list is not None:
             for value in match_list:
-                exclude_dict[" "+str(random.randint(0, 264308))+" "] = value
+                exclude_dict[" " + str(random.randint(0, 264308)) + " "] = value
 
         for (k, v) in exclude_dict.items():
             text = str(text).replace(v, k)
 
-        if exclude != "":
+        if exclude is not None:
             random_str = str(random.randint(0, 99999))
             exclude_dict[random_str] = exclude
             text = str(text).replace(exclude, random_str)
@@ -45,7 +47,7 @@ class Translator:
             tr_text = text
 
         for (k, v) in exclude_dict.items():
-            tr_text = tr_text.replace(k[1:len(k)-1], v)
+            tr_text = tr_text.replace(k[1:len(k) - 1], v)
 
         return unicodedata.normalize('NFKC', tr_text)
 

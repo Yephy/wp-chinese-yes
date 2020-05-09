@@ -1,6 +1,7 @@
 import click
 import polib
 import pot
+import plugin_info_handle
 from potrans import Translator
 
 
@@ -17,8 +18,7 @@ def cli():
               help="Output *.po file to write to")
 @click.option("--output_mo", "-om", type=click.Path(file_okay=True, writable=True, dir_okay=False),
               help="Output *.mo file to write to")
-@click.option("--exclude", "-e", default="", help="排除不翻译的关键字，不区分大小写")
-def translate(input, output_po="", output_mo="", exclude=""):
+def translate(input, output_po="", output_mo=""):
     pot_file = ""
     if input:
         pot_file = pot.get(input)
@@ -29,7 +29,7 @@ def translate(input, output_po="", output_mo="", exclude=""):
 
     print("Initializing...")
     t = Translator(pot_file)
-    t.go_translate(exclude)
+    t.go_translate(plugin_info_handle.get_name())
     print("Translation finished")
 
     if output_po:
