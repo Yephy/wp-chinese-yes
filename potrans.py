@@ -8,9 +8,7 @@ import random
 
 
 class Translator:
-    def __init__(self, src_lang=None, dest_lang=None, src_po_file=None):
-        self.src_lang = src_lang
-        self.dest_lang = dest_lang
+    def __init__(self, src_po_file=None):
         if src_po_file is not None:
             self.open_po_file(src_po_file)
 
@@ -19,7 +17,7 @@ class Translator:
             po_filename = po_filename.name
         self.po = polib.pofile(po_filename)
 
-    def _translate_str(self, text, src_lang, dest_lang, return_src_if_empty_result=True, need_print=False, exclude=""):
+    def _translate_str(self, text, return_src_if_empty_result=True, need_print=False, exclude=""):
         if not text.strip():
             return ""
 
@@ -37,7 +35,7 @@ class Translator:
             exclude_dict[random_str] = exclude
             text = str(text).replace(exclude, random_str)
 
-        tr = baidu_trans.baidu_trans(text, self.src_lang, self.dest_lang)
+        tr = baidu_trans.baidu_trans(text, "auto", "zh")
         if "error_code" not in tr:
             tr_text = tr['trans_result'][0]['dst']
         else:
@@ -54,12 +52,8 @@ class Translator:
 
         return unicodedata.normalize('NFKC', tr_text)
 
-    def go_translate(self, src_lang=None, dest_lang=None, debug=False, exclude="", **kwargs):
+    def go_translate(self, debug=False, exclude="", **kwargs):
         break_on = kwargs.get("break_on", False)
-        if src_lang is None:
-            src_lang = self.src_lang
-        if dest_lang is None:
-            dest_lang = self.dest_lang
         count = len(self.po)
         pos = 0
         prev_percent = -1
@@ -69,16 +63,16 @@ class Translator:
             pos += 1
             translated = False
             if item.msgid:
-                item.msgstr = self._translate_str(item.msgid, src_lang, dest_lang, True, debug, exclude)
+                item.msgstr = self._translate_str(item.msgid, True, debug, exclude)
                 translated = True
             if item.msgid_plural:
-                item.msgstr_plural[0] = self._translate_str(item.msgid, src_lang, dest_lang, True, debug, exclude)
+                item.msgstr_plural[0] = self._translate_str(item.msgid, True, debug, exclude)
                 item.msgstr_plural[1] = item.msgstr_plural[0]
                 translated = True
             if not translated and item.msgstr:
-                item.msgstr = self._translate_str(item.msgstr, src_lang, dest_lang, True, debug, exclude)
+                item.msgstr = self._translate_str(item.msgstr, True, debug, exclude)
                 if item.msgstr_plural:
-                    item.msgstr_plural[0] = self._translate_str(item.msgstr, src_lang, dest_lang, True, debug, exclude)
+                    item.msgstr_plural[0] = self._translate_str(item.msgstr, True, debug, exclude)
                     item.msgstr_plural[1] = item.msgstr_plural[0]
 
             percent = int(pos * 100 / count)
