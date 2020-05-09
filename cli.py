@@ -17,9 +17,8 @@ def cli():
               help="Output *.po file to write to")
 @click.option("--output_mo", "-om", type=click.Path(file_okay=True, writable=True, dir_okay=False),
               help="Output *.mo file to write to")
-@click.option("--debug/--no-debug", default=False, help="Display debug information")
 @click.option("--exclude", "-e", default="", help="排除不翻译的关键字，不区分大小写")
-def translate(input, output_po="", output_mo="", debug=False, exclude=""):
+def translate(input, output_po="", output_mo="", exclude=""):
     pot_file = ""
     if input:
         pot_file = pot.get(input)
@@ -29,11 +28,8 @@ def translate(input, output_po="", output_mo="", debug=False, exclude=""):
         return
 
     print("Initializing...")
-    if debug:
-        print("DBG: Debug enabled")
-        print("DBG: mode translate")
     t = Translator(pot_file)
-    t.go_translate(debug, exclude)
+    t.go_translate(exclude)
     print("Translation finished")
 
     if output_po:

@@ -17,7 +17,7 @@ class Translator:
             po_filename = po_filename.name
         self.po = polib.pofile(po_filename)
 
-    def _translate_str(self, text, return_src_if_empty_result=True, need_print=False, exclude=""):
+    def _translate_str(self, text, return_src_if_empty_result=True, exclude=""):
         if not text.strip():
             return ""
 
@@ -44,15 +44,12 @@ class Translator:
         if not tr_text and return_src_if_empty_result:
             tr_text = text
 
-        if need_print:
-            print(text + " => " + tr_text)
-
         for (k, v) in exclude_dict.items():
             tr_text = tr_text.replace(k[1:len(k)-1], v)
 
         return unicodedata.normalize('NFKC', tr_text)
 
-    def go_translate(self, debug=False, exclude="", **kwargs):
+    def go_translate(self, exclude="", **kwargs):
         break_on = kwargs.get("break_on", False)
         count = len(self.po)
         pos = 0
@@ -63,16 +60,16 @@ class Translator:
             pos += 1
             translated = False
             if item.msgid:
-                item.msgstr = self._translate_str(item.msgid, True, debug, exclude)
+                item.msgstr = self._translate_str(item.msgid, True, exclude)
                 translated = True
             if item.msgid_plural:
-                item.msgstr_plural[0] = self._translate_str(item.msgid, True, debug, exclude)
+                item.msgstr_plural[0] = self._translate_str(item.msgid, True, exclude)
                 item.msgstr_plural[1] = item.msgstr_plural[0]
                 translated = True
             if not translated and item.msgstr:
-                item.msgstr = self._translate_str(item.msgstr, True, debug, exclude)
+                item.msgstr = self._translate_str(item.msgstr, True, exclude)
                 if item.msgstr_plural:
-                    item.msgstr_plural[0] = self._translate_str(item.msgstr, True, debug, exclude)
+                    item.msgstr_plural[0] = self._translate_str(item.msgstr, True, exclude)
                     item.msgstr_plural[1] = item.msgstr_plural[0]
 
             percent = int(pos * 100 / count)
