@@ -1,10 +1,10 @@
 import unicodedata
-
 import polib
 import io
 import re
 import baidu_trans
 import random
+from tqdm import tqdm
 
 
 class Translator:
@@ -53,10 +53,11 @@ class Translator:
 
     def go_translate(self, exclude="", **kwargs):
         break_on = kwargs.get("break_on", False)
-        count = len(self.po)
         pos = 0
-        prev_percent = -1
-        for item in self.po:
+        print(exclude + " 插件开始本地化：")
+        pbar = tqdm(self.po)
+
+        for item in pbar:
             if break_on and break_on == pos:
                 break
             pos += 1
@@ -73,11 +74,6 @@ class Translator:
                 if item.msgstr_plural:
                     item.msgstr_plural[0] = self._translate_str(item.msgstr, True, exclude)
                     item.msgstr_plural[1] = item.msgstr_plural[0]
-
-            percent = int(pos * 100 / count)
-            if percent != prev_percent:
-                prev_percent = percent
-                print("### Progress: " + str(percent) + "% ###")
 
     def save_po_file(self, dest_po_file=None):
         self.po.save(dest_po_file)
