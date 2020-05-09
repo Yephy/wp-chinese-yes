@@ -1,6 +1,6 @@
-import os
 import click
 import polib
+import pot
 from potrans import Translator
 
 
@@ -11,8 +11,8 @@ def cli():
 
 
 @cli.command(help="Translate source *.po file from one language to another, and save result as *.po or *.mo file")
-@click.option("--input_po", "-i", type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
-              help="Input *.po file to open")
+@click.option("--input", "-i", default="", type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
+              help="Input *.zip file to open")
 @click.option("--input_lang", "-il", default="auto", type=click.STRING, help="Source language code (for ex.: auto, ru, en, fr, de)")
 @click.option("--output_lang", "-ol", default="zh", type=click.STRING, help="Destination language code (for ex.: zh, ru, en, fr, de)")
 @click.option("--output_po", "-o", type=click.Path(file_okay=True, writable=True, dir_okay=False),
@@ -21,10 +21,11 @@ def cli():
               help="Output *.mo file to write to")
 @click.option("--debug/--no-debug", default=False, help="Display debug information")
 @click.option("--exclude", "-e", default="", help="排除不翻译的关键字，不区分大小写")
-def translate(input_po, input_lang, output_lang, output_po="", output_mo="", debug=False, exclude=""):
-    if not input_po:
-        print("No --input_po specified")
-        return
+def translate(input, input_lang, output_lang, output_po="", output_mo="", debug=False, exclude=""):
+    pot_file = ""
+    if input:
+        pot_file = pot.get(input)
+
     if not output_po and not output_mo:
         print("No --output_po or --output_mo specified")
         return
@@ -33,7 +34,7 @@ def translate(input_po, input_lang, output_lang, output_po="", output_mo="", deb
     if debug:
         print("DBG: Debug enabled")
         print("DBG: mode translate")
-    t = Translator(input_lang, output_lang, input_po)
+    t = Translator(input_lang, output_lang, pot_file)
     print("Translating from {} to {}...".format(input_lang, output_lang))
     t.go_translate(input_lang, output_lang, debug, exclude)
     print("Translation finished")
