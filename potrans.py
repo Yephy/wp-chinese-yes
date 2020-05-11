@@ -4,6 +4,8 @@ import io
 import re
 import baidu_trans
 import random
+import http.client
+from urllib import parse
 from tqdm import tqdm
 
 
@@ -20,6 +22,20 @@ class Translator:
     def _translate_str(self, text, return_src_if_empty_result=True, exclude=None):
         if not text.strip():
             return ""
+
+        http_client = None
+        memory_query_url = "/wp-content/plugins/gp-super-more/query_memory.php?query=" + parse.quote(text)
+        try:
+            http_client = http.client.HTTPSConnection("wptest.ibadboy.net")
+            http_client.request("GET", memory_query_url)
+            response = http_client.getresponse()
+            result = response.read().decode("utf-8")
+
+            if len(result) != 0:
+                return result
+        finally:
+            if http_client:
+                http_client.close()
 
         exclude_dict = {}
         match_list = re.findall(
