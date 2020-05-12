@@ -1,5 +1,6 @@
 import os
 import re
+import unicodedata
 
 
 def get_name():
@@ -21,8 +22,17 @@ def get_name():
                     break
                 plugin_name_match = re.match(r".+Plugin Name:\s+", line)
                 if plugin_name_match is not None:
-                    return (line[plugin_name_match.regs[0][1]:len(line)]).replace('\n', '').replace('\r', '')
+                    return (line[plugin_name_match.regs[0][1]:len(line)]).replace("\n", "").replace("\r", "")
                 i += 1
             file.close()
 
     return None
+
+
+def get_text_domain():
+    plugin_dir = os.listdir("./tmp")
+
+    if len(plugin_dir) == 1:
+        return plugin_dir[0]
+
+    raise Exception("无法获取插件文本域")
