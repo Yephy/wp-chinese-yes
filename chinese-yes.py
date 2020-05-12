@@ -259,6 +259,9 @@ class Translator:
                 httpClient.close()
 
 
+config_file = open("./config", "r", encoding="utf-8")
+config = data = json.load(config_file)
+
 p = PluginInfoHandle()
 
 pot_file = p.make_pot_file(sys.argv[1])
