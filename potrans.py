@@ -31,7 +31,7 @@ class Translator:
             response = http_client.getresponse()
             result = response.read().decode("utf-8")
 
-            if len(result) != 0:
+            if len(result) != 0 and response.status == 200:
                 return result
         finally:
             if http_client:
