@@ -5,7 +5,7 @@ import re
 
 
 def get(filename):
-    dir_prefix = "./tmp/"
+    dir_prefix = "./tmp/plugin/"
     if os.path.isdir(dir_prefix):
         shutil.rmtree(dir_prefix)
     os.mkdir(dir_prefix)
@@ -13,7 +13,7 @@ def get(filename):
     zip_file = zipfile.ZipFile(filename)
     zip_list = zip_file.namelist()
     for f in zip_list:
-        zip_file.extract(f, "./tmp")
+        zip_file.extract(f, "./tmp/plugin")
 
     filename_list = os.listdir(dir_prefix)
 

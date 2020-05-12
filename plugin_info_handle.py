@@ -4,7 +4,7 @@ import unicodedata
 
 
 def get_name():
-    dir_prefix = "./tmp/"
+    dir_prefix = "./tmp/plugin/"
 
     filename_list = os.listdir(dir_prefix)
     if len(filename_list) == 1:
@@ -30,7 +30,7 @@ def get_name():
 
 
 def get_text_domain():
-    plugin_dir = os.listdir("./tmp")
+    plugin_dir = os.listdir("./tmp/plugin")
 
     if len(plugin_dir) == 1:
         return plugin_dir[0]
