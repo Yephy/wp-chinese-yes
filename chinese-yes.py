@@ -140,7 +140,12 @@ class PluginInfoHandle:
 
 
 class Translator:
-    def __init__(self, src_po_file=None):
+    __baidu_id = ""
+    __baidu_key = ""
+
+    def __init__(self, src_po_file=None, baidu_id=None, baidu_key=None):
+        self.__baidu_id = baidu_id
+        self.__baidu_key = baidu_key
         if src_po_file is not None:
             self.open_po_file(src_po_file)
 
@@ -228,8 +233,8 @@ class Translator:
         self.po.save_as_mofile(dest_mo_file)
 
     def baidu_trans(self, q="", fromLang="auto", toLang="zh"):
-        appid = ""
-        secretKey = ""
+        appid = self.__baidu_id
+        secretKey = self.__baidu_key
 
         httpClient = None
         myurl = "/api/trans/vip/translate"
@@ -268,7 +273,7 @@ pot_file = p.make_pot_file(sys.argv[1])
 
 # plugin_info_handle.get_official_language_package()
 
-t = Translator(pot_file)
+t = Translator(pot_file, config["baidu-api"]["id"], config["baidu-api"]["key"])
 t.go_translate(p.get_name())
 
 t.save_po_file("./out/%s-zh_CN.po" % (p.get_text_domain()))
