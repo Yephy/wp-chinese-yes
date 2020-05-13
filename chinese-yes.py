@@ -69,8 +69,8 @@ class PluginInfoHandle:
 
     def find_pot_file_by_list(self, filename_list):
         for v in filename_list:
-            pot_file = re.match(r"[\w]+.pot$", v)
-            if pot_file is not None:
+            pot_file = re.findall(r"[\w]+.pot$", v)
+            if len(pot_file) != 0:
                 return v
 
         return None
@@ -84,15 +84,15 @@ class PluginInfoHandle:
             filename_list = os.listdir(dir_prefix)
 
         for v in filename_list:
-            php_file = re.match(r"[\w]+.php$", v)
-            if php_file is not None:
+            php_file = re.findall(r"[\w]+.php$", v)
+            if len(php_file) != 0:
                 file = open(dir_prefix + "/" + v, "r", encoding="utf-8")
 
                 i = 0
                 for line in file:
                     if i >= 30:
                         break
-                    plugin_name_match = re.match(r".+Plugin Name:\s+", line)
+                    plugin_name_match = re.match(r".*Plugin Name:\s+", line)
                     if plugin_name_match is not None:
                         return (line[plugin_name_match.regs[0][1]:len(line)]).replace("\n", "").replace("\r", "")
                     i += 1
