@@ -183,13 +183,13 @@ class Translator:
             text)
         if match_list is not None:
             for value in match_list:
-                exclude_dict[" " + str(random.randint(0, 264308)) + " "] = value
+                exclude_dict[" " + str(random.randint(200000, 264308)) + " "] = value
 
         for (k, v) in exclude_dict.items():
             text = str(text).replace(v, k)
 
         if exclude is not None:
-            random_str = str(random.randint(0, 99999))
+            random_str = " " + str(random.randint(200000, 264308)) + " "
             exclude_dict[random_str] = exclude
             text = str(text).replace(exclude, random_str)
 
