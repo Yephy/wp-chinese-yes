@@ -193,17 +193,34 @@ class Translator:
             exclude_dict[random_str] = exclude
             text = str(text).replace(exclude, random_str)
 
-        tr = self.baidu_trans(text, "auto", "zh")
-        if "error_code" not in tr:
-            tr_text = tr['trans_result'][0]['dst']
+        # tr = self.baidu_trans(text, "auto", "zh")
+        google_api = GoogleAPI()
+        tr = google_api.translate(text)
+        if len(tr) != 0:
+            html_tag_list = re.findall(r"<(?!/).+?>", tr)
+            exclude_html_tag_dict = {}
+            if html_tag_list is not None:
+                for value in html_tag_list:
+                    key = str(random.randint(200000, 264308))
+                    exclude_html_tag_dict[key] = value
+                    tr = str(tr).replace(value, key)
+            tr_text = tr.replace(" ", "")
+
+            for (k, v) in exclude_html_tag_dict.items():
+                tr_text = tr_text.replace(k, v)
         else:
-            tr_text = ""
+            tr_text = text
+
+        #if "error_code" not in tr:
+        #    tr_text = tr['trans_result'][0]['dst']
+        #else:
+        #    tr_text = ""
 
         if not tr_text and return_src_if_empty_result:
             tr_text = text
 
         for (k, v) in exclude_dict.items():
-            tr_text = tr_text.replace(k[1:len(k) - 1], v)
+            tr_text = tr_text.replace(k[1:len(k)-1], v)
 
         return unicodedata.normalize('NFKC', tr_text)
 
