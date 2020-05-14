@@ -374,19 +374,10 @@ class GoogleAPI:
         try:
             r = requests.get(url)
             result = json.loads(r.text)
-            if result[7] != []:
-                try:
-                    correctText = result[7][0].replace('<b><i>', ' ').replace('</i></b>', '')
-                    correctUrl = self.buildUrl(correctText, self.getTk(correctText))
-                    correctR = requests.get(correctUrl)
-                    newResult = json.loads(correctR.text)
-                    res = newResult[0][0][0]
-                except Exception as e:
-                    res = result[0][0][0]
-            else:
-                for v in result[0]:
-                    if v[0] is not None:
-                        res += v[0]
+
+            for v in result[0]:
+                if v[0] is not None:
+                    res += v[0]
 
             return res
         except Exception as e:
