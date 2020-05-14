@@ -198,10 +198,10 @@ class Translator:
         tr = unicodedata.normalize('NFKC', google_api.translate(text))
         if len(tr) != 0:
             # |%[sd]|&[a-z]+;
-            html_tag_list = re.findall(r"</.+?>|%[0-9]\s\$\ss", tr)
+            remove_spaces_list = re.findall(r"</.+?>|%[0-9]\s\$\ss", tr)
             exclude_html_tag_dict = {}
-            if html_tag_list is not None:
-                for value in html_tag_list:
+            if remove_spaces_list is not None:
+                for value in remove_spaces_list:
                     key = str(random.randint(200000, 264308))
                     exclude_html_tag_dict[key] = value
                     tr = str(tr).replace(value, key)
