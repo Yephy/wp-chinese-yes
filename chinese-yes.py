@@ -207,7 +207,7 @@ class Translator:
         tr = unicodedata.normalize('NFKC', google_api.translate(text))
         if len(tr) != 0:
             # |%[sd]|&[a-z]+;
-            remove_spaces_list = re.findall(r"</.+?>|%[0-9]\s\$\ss", tr)
+            remove_spaces_list = re.findall(r"</.+?>|%[0-9]\s\$\ss|(\s/\s|\s/|/\s)", tr)
             exclude_html_tag_dict = {}
             if remove_spaces_list is not None:
                 for value in remove_spaces_list:
