@@ -335,18 +335,6 @@ class GoogleAPI:
         return baseUrl
 
     def translate(self, text):
-        header = {
-            'authority': 'translate.google.cn',
-            'method': 'GET',
-            'path': '',
-            'scheme': 'https',
-            'accept': '*/*',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'zh-CN,zh;q=0.9',
-            'cookie': '',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64)  AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36',
-            'x-client-data': 'CIa2yQEIpbbJAQjBtskBCPqcygEIqZ3KAQioo8oBGJGjygE='
-        }
         url = self.buildUrl(parse.quote(text), self.getTk(text))
         res = ''
 
