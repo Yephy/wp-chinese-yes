@@ -17,6 +17,11 @@ import urllib.request
 import shutil
 import requests
 import execjs
+import string
+
+with open("plugins.txt") as file_obj:
+    plugins_txt = file_obj.read()
+plugins = plugins_txt.split("\n")
 
 
 class PluginInfoHandle:
@@ -189,6 +194,18 @@ class Translator:
         match_list = list(set(filter(not_empty, re.findall(r"%[0-9]\$s|%[sd]|&[a-z]+;", text))))
         for value in match_list:
             exclude_dict["[" + value + "]"] = value
+
+        rough_match_list = []
+        lower_text = text.lower()
+        for plugin in plugins:
+            if plugin in lower_text:
+                rough_match_list.append(plugin)
+
+        for rough_match in rough_match_list:
+            reg = r"\b" + (rough_match.replace("-", r"[-|\s]")) + r"\b"
+            match_list = list(set(filter(not_empty, re.findall(reg, text, re.IGNORECASE))))
+            for value in match_list:
+                exclude_dict[id_generator()] = value
 
         for (k, v) in exclude_dict.items():
             text = str(text).replace(v, k)
