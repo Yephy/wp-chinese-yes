@@ -175,18 +175,18 @@ class Translator:
 
         # 一些不想被翻译的特殊标记替换成随机数字
         exclude_dict = {}
-        match_list = list(set(re.findall(
+        match_list = list(set(filter(not_empty, re.findall(
             r"<(?!/).+?>|\[.+\]|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
-            text)))
+            text))))
         for value in match_list:
             if value[0:1] == "<" and value[len(value) - 1:len(value)] == ">":
-                tag_att_list = list(set(re.findall(r"\s.+", value[1:len(value) - 1])))
+                tag_att_list = list(set(filter(not_empty, re.findall(r"\s.+", value[1:len(value) - 1]))))
                 for v in tag_att_list:
-                    exclude_dict[str(random.randint(200000, 264308))] = v[1:len(v)]
+                    exclude_dict[id_generator()] = v[1:len(v)]
             else:
-                exclude_dict[str(random.randint(200000, 264308))] = value
+                exclude_dict[id_generator()] = value
         # 对于%2$s等占位符，在其两侧增加[]，变成类似如下形式：[%2$s]防止被翻译引擎解析
-        match_list = list(set(re.findall(r"%[0-9]\$s|%[sd]|&[a-z]+;", text)))
+        match_list = list(set(filter(not_empty, re.findall(r"%[0-9]\$s|%[sd]|&[a-z]+;", text))))
         for value in match_list:
             exclude_dict["[" + value + "]"] = value
 
@@ -194,20 +194,19 @@ class Translator:
             text = str(text).replace(v, k)
 
         if exclude is not None:
-            random_str = str(random.randint(200000, 264308))
+            random_str = str(id_generator())
             exclude_dict[random_str] = exclude
             text = str(text).replace(exclude, random_str)
 
         google_api = GoogleAPI()
         tr = unicodedata.normalize('NFKC', google_api.translate(text))
         if len(tr) != 0:
-            remove_spaces_list = list(set(re.findall(r"</.+?>|%[0-9]\s\$\ss|(\s/\s|\s/|/\s)", tr)))
+            remove_spaces_list = list(set(filter(not_empty, re.findall(r"</.+?>|%[0-9]\s\$\ss|(\s/\s|\s/|/\s)", tr))))
             exclude_html_tag_dict = {}
-            if remove_spaces_list is not None:
-                for value in remove_spaces_list:
-                    key = str(random.randint(200000, 264308))
-                    exclude_html_tag_dict[key] = value
-                    tr = str(tr).replace(value, key)
+            for value in remove_spaces_list:
+                key = id_generator()
+                exclude_html_tag_dict[key] = value
+                tr = str(tr).replace(value, key)
             tr_text = tr
 
             for (k, v) in exclude_html_tag_dict.items():
@@ -351,6 +350,14 @@ class GoogleAPI:
             return res
         except Exception as e:
             return text
+
+
+def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+
+def not_empty(s):
+    return s and s.strip()
 
 
 config_file = open("./config", "r", encoding="utf-8")
