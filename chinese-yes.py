@@ -201,12 +201,9 @@ class Translator:
         google_api = GoogleAPI()
         tr = unicodedata.normalize('NFKC', google_api.translate(text))
         if len(tr) != 0:
-            remove_spaces_list = list(set(filter(not_empty, re.findall(r"</.+?>|%[0-9]\s\$\ss|(\s/\s|\s/|/\s)", tr))))
-            exclude_html_tag_dict = {}
+            remove_spaces_list = list(set(filter(not_empty, re.findall(r"</.+?>|%[0-9]\s\$\ss|\s/\s", tr))))
             for value in remove_spaces_list:
-                key = id_generator()
-                exclude_html_tag_dict[key] = value
-                tr = str(tr).replace(value, key)
+                tr = str(tr).replace(value, value.replace(" ", ""))
             tr_text = tr
 
             for (k, v) in exclude_html_tag_dict.items():
