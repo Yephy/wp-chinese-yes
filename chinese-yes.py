@@ -174,6 +174,7 @@ class Translator:
             if http_client:
                 http_client.close()
 
+        # 一些不想被翻译的特殊标记替换成随机数字
         exclude_dict = {}
         #match_list = re.findall(
         #    r"%[sd]|&[a-z]+;|%[0-9]+{\$s}|\[.+\]|<.+?>|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
@@ -181,14 +182,17 @@ class Translator:
         match_list = re.findall(
             r"<(?!/).+?>|\[.+\]|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
             text)
-        if match_list is not None:
-            for value in match_list:
-                if value[0:1] == "<" and value[len(value)-1:len(value)] == ">":
-                    tag_att_list = re.findall(r"\s.+", value[1:len(value)-1])
-                    for v in tag_att_list:
-                        exclude_dict[str(random.randint(200000, 264308))] = v[1:len(v)]
-                else:
-                    exclude_dict[str(random.randint(200000, 264308))] = value
+        for value in match_list:
+            if value[0:1] == "<" and value[len(value)-1:len(value)] == ">":
+                tag_att_list = re.findall(r"\s.+", value[1:len(value)-1])
+                for v in tag_att_list:
+                    exclude_dict[str(random.randint(200000, 264308))] = v[1:len(v)]
+            else:
+                exclude_dict[str(random.randint(200000, 264308))] = value
+        # 对于%2$s等占位符，在其两侧增加[]，变成类似如下形式：[%2$s]防止被翻译引擎解析
+        match_list = re.findall(r"%[0-9]\$s|%[sd]|&[a-z]+;", text)
+        for value in match_list:
+            exclude_dict["[" + value + "]"] = value
 
         for (k, v) in exclude_dict.items():
             text = str(text).replace(v, k)
