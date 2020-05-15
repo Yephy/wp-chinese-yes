@@ -222,9 +222,6 @@ class Translator:
             for value in remove_spaces_list:
                 tr = str(tr).replace(value, value.replace(" ", ""))
             tr_text = tr
-
-            for (k, v) in exclude_html_tag_dict.items():
-                tr_text = tr_text.replace(k, v.replace(" ", ""))
         else:
             tr_text = text
 
