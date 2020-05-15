@@ -175,18 +175,18 @@ class Translator:
 
         # 一些不想被翻译的特殊标记替换成随机数字
         exclude_dict = {}
-        match_list = re.findall(
+        match_list = list(set(re.findall(
             r"<(?!/).+?>|\[.+\]|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
-            text)
+            text)))
         for value in match_list:
-            if value[0:1] == "<" and value[len(value)-1:len(value)] == ">":
-                tag_att_list = re.findall(r"\s.+", value[1:len(value)-1])
+            if value[0:1] == "<" and value[len(value) - 1:len(value)] == ">":
+                tag_att_list = list(set(re.findall(r"\s.+", value[1:len(value) - 1])))
                 for v in tag_att_list:
                     exclude_dict[str(random.randint(200000, 264308))] = v[1:len(v)]
             else:
                 exclude_dict[str(random.randint(200000, 264308))] = value
         # 对于%2$s等占位符，在其两侧增加[]，变成类似如下形式：[%2$s]防止被翻译引擎解析
-        match_list = re.findall(r"%[0-9]\$s|%[sd]|&[a-z]+;", text)
+        match_list = list(set(re.findall(r"%[0-9]\$s|%[sd]|&[a-z]+;", text)))
         for value in match_list:
             exclude_dict["[" + value + "]"] = value
 
@@ -201,7 +201,7 @@ class Translator:
         google_api = GoogleAPI()
         tr = unicodedata.normalize('NFKC', google_api.translate(text))
         if len(tr) != 0:
-            remove_spaces_list = re.findall(r"</.+?>|%[0-9]\s\$\ss|(\s/\s|\s/|/\s)", tr)
+            remove_spaces_list = list(set(re.findall(r"</.+?>|%[0-9]\s\$\ss|(\s/\s|\s/|/\s)", tr)))
             exclude_html_tag_dict = {}
             if remove_spaces_list is not None:
                 for value in remove_spaces_list:
