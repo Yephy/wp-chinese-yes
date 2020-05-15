@@ -10,7 +10,6 @@ from urllib import parse
 from tqdm import tqdm
 import sys
 import json
-import hashlib
 import urllib
 import os
 import zipfile
@@ -176,9 +175,6 @@ class Translator:
 
         # 一些不想被翻译的特殊标记替换成随机数字
         exclude_dict = {}
-        #match_list = re.findall(
-        #    r"%[sd]|&[a-z]+;|%[0-9]+{\$s}|\[.+\]|<.+?>|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
-        #    text)
         match_list = re.findall(
             r"<(?!/).+?>|\[.+\]|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
             text)
@@ -202,11 +198,9 @@ class Translator:
             exclude_dict[random_str] = exclude
             text = str(text).replace(exclude, random_str)
 
-        # tr = self.baidu_trans(text, "auto", "zh")
         google_api = GoogleAPI()
         tr = unicodedata.normalize('NFKC', google_api.translate(text))
         if len(tr) != 0:
-            # |%[sd]|&[a-z]+;
             remove_spaces_list = re.findall(r"</.+?>|%[0-9]\s\$\ss|(\s/\s|\s/|/\s)", tr)
             exclude_html_tag_dict = {}
             if remove_spaces_list is not None:
@@ -220,11 +214,6 @@ class Translator:
                 tr_text = tr_text.replace(k, v.replace(" ", ""))
         else:
             tr_text = text
-
-        #if "error_code" not in tr:
-        #    tr_text = tr['trans_result'][0]['dst']
-        #else:
-        #    tr_text = ""
 
         if not tr_text and return_src_if_empty_result:
             tr_text = text
@@ -264,36 +253,6 @@ class Translator:
     def save_mo_file(self, dest_mo_file=None):
         self.po.save_as_mofile(dest_mo_file)
 
-    def baidu_trans(self, q="", fromLang="auto", toLang="zh"):
-        appid = self.__baidu_id
-        secretKey = self.__baidu_key
-
-        httpClient = None
-        myurl = "/api/trans/vip/translate"
-
-        salt = random.randint(32768, 65536)
-        sign = appid + q + str(salt) + secretKey
-        sign = hashlib.md5(sign.encode()).hexdigest()
-        myurl = myurl + "?appid=" + appid + "&q=" + urllib.parse.quote(
-            q) + "&from=" + fromLang + "&to=" + toLang + "&salt=" + str(
-            salt) + "&sign=" + sign
-
-        try:
-            httpClient = http.client.HTTPConnection("api.fanyi.baidu.com")
-            httpClient.request("GET", myurl)
-
-            # response是HTTPResponse对象
-            response = httpClient.getresponse()
-            result_all = response.read().decode("utf-8")
-            result = json.loads(result_all)
-
-            return (result)
-
-        except Exception as e:
-            print(e)
-        finally:
-            if httpClient:
-                httpClient.close()
 
 class GoogleAPI:
     def __init__(self):
