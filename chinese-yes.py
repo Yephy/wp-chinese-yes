@@ -224,9 +224,10 @@ class Translator:
         google_api = GoogleAPI()
         tr = punctuation_c_trans_to_e(google_api.translate(text))
         if len(tr) != 0:
-            remove_spaces_list = list(set(filter(not_empty, re.findall(r"</.+?>|%[0-9]\s\$\ss|\s/\s", tr))))
-            for value in remove_spaces_list:
-                tr = str(tr).replace(value, value.replace(" ", ""))
+            for re_str in [r"</.+?>", r"%[0-9]\s\$\ss", r"\s/\s", r"\s/", r"/\s"]:
+                remove_spaces_list = list(set(filter(not_empty, re.findall(re_str, tr))))
+                for value in remove_spaces_list:
+                    tr = str(tr).replace(value, value.replace(" ", ""))
             tr_text = tr
         else:
             tr_text = text
