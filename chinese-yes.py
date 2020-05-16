@@ -1,6 +1,5 @@
 #! /usr/bin/python3
 
-import unicodedata
 import polib
 import io
 import re
@@ -17,7 +16,6 @@ import urllib.request
 import shutil
 import requests
 import execjs
-import string
 import html
 
 with open("plugins.txt") as file_obj:
@@ -219,7 +217,7 @@ class Translator:
             text = str(text).replace(exclude, random_str)
 
         google_api = GoogleAPI()
-        tr = unicodedata.normalize('NFKC', google_api.translate(text))
+        tr = punctuation_c_trans_to_e(google_api.translate(text))
         if len(tr) != 0:
             remove_spaces_list = list(set(filter(not_empty, re.findall(r"</.+?>|%[0-9]\s\$\ss|\s/\s", tr))))
             for value in remove_spaces_list:
@@ -363,6 +361,13 @@ def id_generator(exist):
 
 def not_empty(s):
     return s and s.strip()
+
+
+def punctuation_c_trans_to_e(string):
+    e_pun = u',.!?[]()<>%"\''
+    c_pun = u'，。！？【】（）《》％“‘'
+    table = {ord(f): ord(t) for f, t in zip(c_pun, e_pun)}
+    return string.translate(table)
 
 
 config_file = open("./config", "r", encoding="utf-8")
