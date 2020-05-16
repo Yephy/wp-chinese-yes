@@ -18,6 +18,7 @@ import shutil
 import requests
 import execjs
 import string
+import html
 
 with open("plugins.txt") as file_obj:
     plugins_txt = file_obj.read()
@@ -163,6 +164,8 @@ class Translator:
     def _translate_str(self, text, return_src_if_empty_result=True, exclude=None):
         if not text.strip():
             return ""
+
+        text = html.unescape(text)
 
         http_client = None
         memory_query_url = "/wp-content/plugins/gp-super-more/query_memory.php?query=" + parse.quote(text)
