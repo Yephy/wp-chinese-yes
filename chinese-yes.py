@@ -240,15 +240,12 @@ class Translator:
 
         return tr_text
 
-    def go_translate(self, exclude="", **kwargs):
-        break_on = kwargs.get("break_on", False)
+    def go_translate(self, exclude=""):
         pos = 0
         print(exclude + " 插件开始本地化：")
         pbar = tqdm(self.po)
 
         for item in pbar:
-            if break_on and break_on == pos:
-                break
             pos += 1
             translated = False
             if item.msgid:
