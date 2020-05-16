@@ -197,14 +197,19 @@ class Translator:
             exclude_dict["[" + value + "]"] = value
 
         rough_match_list = []
-        lower_text = text.lower()
+        lower_text = text.lower().replace(" ", "-")
         for plugin in plugins:
             if plugin in lower_text:
                 rough_match_list.append(plugin)
 
+        # 插件/作者名称认定规则：
+        # 1、无论用空格还是连词符分隔，每个单词的首字母必须大写
+        # 2、鉴于一些插件作者们喜欢用诸如：timer、the、mirror、cache这种沙雕名称，导致过滤单单词插件名会造成很多的误过滤，所以只过滤多单词的名称
         for rough_match in rough_match_list:
-            reg = r"\b" + (rough_match.replace("-", r"[-|\s]")) + r"\b"
-            match_list = list(set(filter(not_empty, re.findall(reg, text, re.IGNORECASE))))
+            if "-" not in rough_match:
+                continue
+            reg = rough_match.title().replace("-", r"[-|\s]")
+            match_list = list(set(filter(not_empty, re.findall(reg, text))))
             for value in match_list:
                 exclude_dict[id_generator(exclude_dict)] = value
 
