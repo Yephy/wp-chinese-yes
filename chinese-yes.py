@@ -248,6 +248,9 @@ class Translator:
         for item in pbar:
             pos += 1
             translated = False
+            if item.comment == "Author of the plugin":
+                continue
+
             if item.msgid:
                 item.msgstr = self._translate_str(item.msgid, True, exclude)
                 translated = True
