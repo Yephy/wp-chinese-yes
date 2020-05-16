@@ -190,9 +190,9 @@ class Translator:
             if value[0:1] == "<" and value[len(value) - 1:len(value)] == ">":
                 tag_att_list = list(set(filter(not_empty, re.findall(r"\s.+", value[1:len(value) - 1]))))
                 for v in tag_att_list:
-                    exclude_dict[id_generator()] = v[1:len(v)]
+                    exclude_dict[id_generator(exclude_dict)] = v[1:len(v)]
             else:
-                exclude_dict[id_generator()] = value
+                exclude_dict[id_generator(exclude_dict)] = value
         # 对于%2$s等占位符，在其两侧增加[]，变成类似如下形式：[%2$s]防止被翻译引擎解析
         match_list = list(set(filter(not_empty, re.findall(r"%[0-9]\$s|%[sd]|&[a-z]+;", text))))
         for value in match_list:
@@ -208,13 +208,13 @@ class Translator:
             reg = r"\b" + (rough_match.replace("-", r"[-|\s]")) + r"\b"
             match_list = list(set(filter(not_empty, re.findall(reg, text, re.IGNORECASE))))
             for value in match_list:
-                exclude_dict[id_generator()] = value
+                exclude_dict[id_generator(exclude_dict)] = value
 
         for (k, v) in exclude_dict.items():
             text = str(text).replace(v, k)
 
         if exclude is not None:
-            random_str = str(id_generator())
+            random_str = str(id_generator(exclude_dict))
             exclude_dict[random_str] = exclude
             text = str(text).replace(exclude, random_str)
 
@@ -354,8 +354,11 @@ class GoogleAPI:
             return text
 
 
-def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
-    return ''.join(random.choice(chars) for _ in range(size))
+def id_generator(exist):
+    while True:
+        random_id = "_" + str(random.randint(200000, 264308)) + "_"
+        if random_id not in exist:
+            return random_id
 
 
 def not_empty(s):
