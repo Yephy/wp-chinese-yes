@@ -272,11 +272,9 @@ wp_plugin_name_list = plugins_txt.split("\n")
 
 # 开始翻译流程
 po_file_object = polib.pofile(plugin_pot_file)
-pos = 0
 print(plugin_name + " 插件开始本地化：")
 
 for item in tqdm(po_file_object):
-    pos += 1
     if item.comment == "Author of the plugin":
         continue
 
