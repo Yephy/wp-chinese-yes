@@ -1,7 +1,6 @@
 #! /usr/bin/python3
 
 import polib
-import io
 import re
 import random
 import http.client
@@ -9,266 +8,103 @@ from urllib import parse
 from tqdm import tqdm
 import sys
 import json
-import urllib
 import os
 import zipfile
-import urllib.request
 import shutil
 import requests
 import execjs
 import html
 
-with open("plugins.txt") as file_obj:
-    plugins_txt = file_obj.read()
-plugins = plugins_txt.split("\n")
+# 全局变量初始化
+plugin_name = ""
+plugin_text_domain = ""
+plugin_domain_path = ""
+plugin_pot_file = ""
+plugin_dir = "./tmp/plugin/"
+po_file_object = None
+wp_plugin_name_list = []
+
+# 异常代码
+_PLUGIN_PACKAGE_FORMAT_ERROR = -10
+_POT_FILE_NOT_FOUND = -11
 
 
-class PluginInfoHandle:
-    def make_pot_file(self, filename):
-        dir_prefix = "./tmp/plugin/"
-        if os.path.isdir(dir_prefix):
-            shutil.rmtree(dir_prefix)
-        os.mkdir(dir_prefix)
+# 工具函数定义
+def translate_str(text, exclude=None):
+    if not html.unescape(text).strip():
+        return ""
 
-        zip_file = zipfile.ZipFile(filename)
-        zip_list = zip_file.namelist()
-        for f in zip_list:
-            zip_file.extract(f, "./tmp/plugin")
+    http_client = None
+    memory_query_url = "/wp-content/plugins/gp-super-more/query_memory.php?query=" + parse.quote(text)
+    try:
+        http_client = http.client.HTTPSConnection("wptest.ibadboy.net")
+        http_client.request("GET", memory_query_url)
+        response = http_client.getresponse()
+        result = response.read().decode("utf-8")
 
-        filename_list = os.listdir(dir_prefix)
+        if len(result) != 0 and response.status == 200:
+            return result
+    finally:
+        if http_client:
+            http_client.close()
 
-        # 如果说解压后只存在一个目录，那说明插件在打包的时候是从上级目录开始打包的，于是就需要进入到这个目录查看实际的包内容
-        if len(filename_list) == 1:
-            dir_prefix += filename_list[0]
-
-        pot_file = self.find_pot_file_by_dir(dir_prefix)
-
-        # 如果目录中搜索不到pot文件就尝试用WordPress提供的wp-cli工具生成pot文件
-        if pot_file is None:
-            os.system("php ./wp-cli.phar i18n make-pot " + dir_prefix)
-            pot_file = self.find_pot_file_by_dir(dir_prefix)
-
-        zip_file.close()
-
-        return pot_file
-
-    def find_pot_file_by_dir(self, dir_prefix):
-        filename_list = os.listdir(dir_prefix)
-
-        # 开始查找.pot文件，这个文件可能在三个地方出现：插件根目录、languages、lang
-        pot_file = self.find_pot_file_by_list(filename_list)
-        if pot_file is not None:
-            return dir_prefix + "/" + pot_file
-        if "languages" in filename_list and pot_file is None:
-            filename_list = os.listdir(dir_prefix + "/languages")
-            pot_file = self.find_pot_file_by_list(filename_list)
-            if pot_file is not None:
-                return dir_prefix + "/languages/" + pot_file
-        if "lang" in filename_list and pot_file is None:
-            filename_list = os.listdir(dir_prefix + "/lang")
-            pot_file = self.find_pot_file_by_list(filename_list)
-            if pot_file is not None:
-                return dir_prefix + "/lang/" + pot_file
-
-        return None
-
-    def find_pot_file_by_list(self, filename_list):
-        for v in filename_list:
-            pot_file = re.findall(r"[\w]+.pot$", v)
-            if len(pot_file) != 0:
-                return v
-
-        return None
-
-    def get_name(self):
-        dir_prefix = "./tmp/plugin/"
-
-        filename_list = os.listdir(dir_prefix)
-        if len(filename_list) == 1:
-            dir_prefix += filename_list[0]
-            filename_list = os.listdir(dir_prefix)
-
-        for v in filename_list:
-            php_file = re.findall(r"[\w]+.php$", v)
-            if len(php_file) != 0:
-                file = open(dir_prefix + "/" + v, "r", encoding="utf-8")
-
-                i = 0
-                for line in file:
-                    if i >= 30:
-                        break
-                    plugin_name_match = re.match(r".*Plugin Name:\s+", line)
-                    if plugin_name_match is not None:
-                        return (line[plugin_name_match.regs[0][1]:len(line)]).replace("\n", "").replace("\r", "")
-                    i += 1
-                file.close()
-
-        return None
-
-    def get_text_domain(self):
-        plugin_dir = os.listdir("./tmp/plugin")
-
-        if len(plugin_dir) == 1:
-            return plugin_dir[0]
-
-        raise Exception("无法获取插件文本域")
-
-    def get_official_language_package(self):
-        zh_cn_package_url = ""
-        http_client = None
-        memory_query_url = "/translations/plugins/1.0/?slug=" + self.get_text_domain()
-        try:
-            http_client = http.client.HTTPSConnection("api.w.org.ibadboy.net")
-            http_client.request("GET", memory_query_url)
-            response = http_client.getresponse()
-            result_all = response.read().decode("utf-8")
-            result = json.loads(result_all)
-
-            if len(result) != 0 and response.status == 200:
-                trans = result["translations"]
-                for language in trans:
-                    if language["language"] == "zh_CN":
-                        zh_cn_package_url = language["package"]
-        finally:
-            if http_client:
-                http_client.close()
-
-        if len(zh_cn_package_url) > 0:
-            urllib.request.urlretrieve(zh_cn_package_url, "./tmp/language.zip")
-
-        zip_file = zipfile.ZipFile("./tmp/language.zip")
-        zip_list = zip_file.namelist()
-        for f in zip_list:
-            zip_file.extract(f, "./tmp")
-
-        zip_file.close()
-
-
-class Translator:
-    __baidu_id = ""
-    __baidu_key = ""
-
-    def __init__(self, src_po_file=None, baidu_id=None, baidu_key=None):
-        self.__baidu_id = baidu_id
-        self.__baidu_key = baidu_key
-        if src_po_file is not None:
-            self.open_po_file(src_po_file)
-
-    def open_po_file(self, po_filename):
-        if isinstance(po_filename, io.TextIOWrapper):
-            po_filename = po_filename.name
-        self.po = polib.pofile(po_filename)
-
-    def _translate_str(self, text, return_src_if_empty_result=True, exclude=None):
-        if not text.strip():
-            return ""
-
-        text = html.unescape(text)
-
-        http_client = None
-        memory_query_url = "/wp-content/plugins/gp-super-more/query_memory.php?query=" + parse.quote(text)
-        try:
-            http_client = http.client.HTTPSConnection("wptest.ibadboy.net")
-            http_client.request("GET", memory_query_url)
-            response = http_client.getresponse()
-            result = response.read().decode("utf-8")
-
-            if len(result) != 0 and response.status == 200:
-                return result
-        finally:
-            if http_client:
-                http_client.close()
-
-        # 一些不想被翻译的特殊标记替换成随机数字
-        exclude_dict = {}
-        match_list = list(set(filter(not_empty, re.findall(
-            r"<(?!/).+?>|\[.+\]|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
-            text))))
-        for value in match_list:
-            if value[0:1] == "<" and value[len(value) - 1:len(value)] == ">":
-                tag_att_list = list(set(filter(not_empty, re.findall(r"\s.+", value[1:len(value) - 1]))))
-                for v in tag_att_list:
-                    exclude_dict[id_generator(exclude_dict)] = v[1:len(v)]
-            else:
-                exclude_dict[id_generator(exclude_dict)] = value
-        # 对于%2$s等占位符，在其两侧增加[]，变成类似如下形式：[%2$s]防止被翻译引擎解析
-        match_list = list(set(filter(not_empty, re.findall(r"%[0-9]\$s|%[sd]|&[a-z]+;", text))))
-        for value in match_list:
-            exclude_dict["[" + value + "]"] = value
-
-        rough_match_list = []
-        lower_text = text.lower().replace(" ", "-")
-        for plugin in plugins:
-            if plugin in lower_text:
-                rough_match_list.append(plugin)
-
-        # 插件/作者名称认定规则：
-        # 1、无论用空格还是连词符分隔，每个单词的首字母必须大写
-        # 2、鉴于一些插件作者们喜欢用诸如：timer、the、mirror、cache这种沙雕名称，导致过滤单单词插件名会造成很多的误过滤，所以只过滤多单词的名称
-        for rough_match in rough_match_list:
-            if "-" not in rough_match:
-                continue
-            reg = r"\b" + (rough_match.title().replace("-", r"[-|\s]")) + r"\b"
-            match_list = list(set(filter(not_empty, re.findall(reg, text))))
-            for value in match_list:
-                exclude_dict[id_generator(exclude_dict)] = value
-
-        for (k, v) in exclude_dict.items():
-            text = str(text).replace(v, k)
-
-        if exclude is not None:
-            random_str = str(id_generator(exclude_dict))
-            exclude_dict[random_str] = exclude
-            text = str(text).replace(exclude, random_str)
-
-        google_api = GoogleAPI()
-        tr = punctuation_c_trans_to_e(google_api.translate(text))
-        if len(tr) != 0:
-            for re_str in [r"</.+?>", r"%[0-9]\s\$\ss", r"\s/\s", r"\s/", r"/\s", r"\$\s"]:
-                remove_spaces_list = list(set(filter(not_empty, re.findall(re_str, tr))))
-                for value in remove_spaces_list:
-                    tr = str(tr).replace(value, value.replace(" ", ""))
-            tr_text = tr
+    # 一些不想被翻译的特殊标记替换成随机数字
+    exclude_dict = {}
+    match_list = list(set(filter(not_empty, re.findall(
+        r"<(?!/).+?>|\[.+\]|http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
+        text))))
+    for value in match_list:
+        if value[0:1] == "<" and value[len(value) - 1:len(value)] == ">":
+            tag_att_list = list(set(filter(not_empty, re.findall(r"\s.+", value[1:len(value) - 1]))))
+            for v in tag_att_list:
+                exclude_dict[id_generator(exclude_dict)] = v[1:len(v)]
         else:
-            tr_text = text
+            exclude_dict[id_generator(exclude_dict)] = value
+    # 对于%2$s等占位符，在其两侧增加[]，变成类似如下形式：[%2$s]防止被翻译引擎解析
+    match_list = list(set(filter(not_empty, re.findall(r"%[0-9]\$s|%[sd]|&[a-z]+;", text))))
+    for value in match_list:
+        exclude_dict["[" + value + "]"] = value
 
-        if not tr_text and return_src_if_empty_result:
-            tr_text = text
+    rough_match_list = []
+    lower_text = text.lower().replace(" ", "-")
+    for plugin in wp_plugin_name_list:
+        if plugin in lower_text:
+            rough_match_list.append(plugin)
 
-        for (k, v) in exclude_dict.items():
-            tr_text = tr_text.replace(k, v)
+    # 插件/作者名称认定规则：
+    # 1、无论用空格还是连词符分隔，每个单词的首字母必须大写
+    # 2、鉴于一些插件作者们喜欢用诸如：timer、the、mirror、cache这种沙雕名称，导致过滤单单词插件名会造成很多的误过滤，所以只过滤多单词的名称
+    for rough_match in rough_match_list:
+        if "-" not in rough_match:
+            continue
+        reg = r"\b" + (rough_match.title().replace("-", r"[-|\s]")) + r"\b"
+        match_list = list(set(filter(not_empty, re.findall(reg, text))))
+        for value in match_list:
+            exclude_dict[id_generator(exclude_dict)] = value
 
-        return tr_text
+    for (k, v) in exclude_dict.items():
+        text = str(text).replace(v, k)
 
-    def go_translate(self, exclude=""):
-        pos = 0
-        print(exclude + " 插件开始本地化：")
-        pbar = tqdm(self.po)
+    if exclude is not None:
+        random_str = str(id_generator(exclude_dict))
+        exclude_dict[random_str] = exclude
+        text = str(text).replace(exclude, random_str)
 
-        for item in pbar:
-            pos += 1
-            translated = False
-            if item.comment == "Author of the plugin":
-                continue
+    google_api = GoogleAPI()
+    tr = punctuation_c_trans_to_e(google_api.translate(text))
+    if len(tr) != 0:
+        for re_str in [r"</.+?>", r"%[0-9]\s\$\ss", r"\s/\s", r"\s/", r"/\s", r"\$\s"]:
+            remove_spaces_list = list(set(filter(not_empty, re.findall(re_str, tr))))
+            for value in remove_spaces_list:
+                tr = str(tr).replace(value, value.replace(" ", ""))
+        tr_text = tr
+    else:
+        tr_text = text
 
-            if item.msgid:
-                item.msgstr = self._translate_str(item.msgid, True, exclude)
-                translated = True
-            if item.msgid_plural:
-                item.msgstr_plural[0] = self._translate_str(item.msgid, True, exclude)
-                item.msgstr_plural[1] = item.msgstr_plural[0]
-                translated = True
-            if not translated and item.msgstr:
-                item.msgstr = self._translate_str(item.msgstr, True, exclude)
-                if item.msgstr_plural:
-                    item.msgstr_plural[0] = self._translate_str(item.msgstr, True, exclude)
-                    item.msgstr_plural[1] = item.msgstr_plural[0]
+    for (k, v) in exclude_dict.items():
+        tr_text = tr_text.replace(k, v)
 
-    def save_po_file(self, dest_po_file=None):
-        self.po.save(dest_po_file)
-
-    def save_mo_file(self, dest_mo_file=None):
-        self.po.save_as_mofile(dest_mo_file)
+    return tr_text
 
 
 class GoogleAPI:
@@ -376,17 +212,79 @@ def punctuation_c_trans_to_e(string):
     return string.translate(table)
 
 
-config_file = open("./config", "r", encoding="utf-8")
-config = data = json.load(config_file)
+# 解压插件压缩包到临时目录
+if os.path.isdir(plugin_dir):
+    shutil.rmtree(plugin_dir)
+os.mkdir(plugin_dir)
 
-p = PluginInfoHandle()
+zip_file = zipfile.ZipFile(sys.argv[1])
+zip_list = zip_file.namelist()
+for f in zip_list:
+    zip_file.extract(f, plugin_dir)
 
-pot_file = p.make_pot_file(sys.argv[1])
+filename_list = os.listdir(plugin_dir)
+if len(filename_list) != 1:
+    print("插件包格式错误")
+    exit(_PLUGIN_PACKAGE_FORMAT_ERROR)
+plugin_dir += filename_list[0]
 
-# plugin_info_handle.get_official_language_package()
+# 读取插件元信息
+filename_list = os.listdir(plugin_dir)
+for v in filename_list:
+    php_file = re.findall(r"[\w]+.php$", v)
+    if len(php_file) != 0:
+        file = open(plugin_dir + "/" + v, "r", encoding="utf-8")
 
-t = Translator(pot_file, config["baidu-api"]["id"], config["baidu-api"]["key"])
-t.go_translate(p.get_name())
+        i = 0
+        for line in file:
+            if i >= 30:
+                break
+            plugin_meta_title_match = re.findall(r".*Plugin Name:\s+|.*Text Domain:\s+|.*Domain Path:\s+", line)
+            for plugin_meta_title in plugin_meta_title_match:
+                line = line.replace("\n", "").replace("\r", "")
+                plugin_meta_title_len = len(plugin_meta_title)
+                plugin_meta_len = len(line)
+                if "Plugin Name" in plugin_meta_title:
+                    plugin_name = line[plugin_meta_title_len:plugin_meta_len]
+                elif "Text Domain" in plugin_meta_title:
+                    plugin_text_domain = line[plugin_meta_title_len:plugin_meta_len]
+                elif "Domain Path" in plugin_meta_title:
+                    plugin_domain_path = line[plugin_meta_title_len:plugin_meta_len]
+            i += 1
+        file.close()
 
-t.save_po_file("./out/%s-zh_CN.po" % (p.get_text_domain()))
-t.save_mo_file("./out/%s-zh_CN.mo" % (p.get_text_domain()))
+# 生成pot文件
+os.system("php ./wp-cli.phar i18n make-pot " + plugin_dir)
+filename_list = os.listdir(plugin_dir + plugin_domain_path)
+for v in filename_list:
+    pot_file = re.findall(r"[\w]+.pot$", v)
+    if len(pot_file) != 0:
+        plugin_pot_file = plugin_dir + plugin_domain_path + "/" + v
+
+if len(plugin_pot_file) == 0:
+    print("翻译模板文件生成失败")
+    exit(_POT_FILE_NOT_FOUND)
+
+# 读取WordPress插件目录中已有插件的名字列表
+with open("plugins.txt") as file_obj:
+    plugins_txt = file_obj.read()
+wp_plugin_name_list = plugins_txt.split("\n")
+
+# 开始翻译流程
+po_file_object = polib.pofile(plugin_pot_file)
+pos = 0
+print(plugin_name + " 插件开始本地化：")
+
+for item in tqdm(po_file_object):
+    pos += 1
+    if item.comment == "Author of the plugin":
+        continue
+
+    if item.msgid:
+        item.msgstr = translate_str(item.msgid, plugin_name)
+    if item.msgid_plural:
+        item.msgstr_plural[0] = translate_str(item.msgid, plugin_name)
+        item.msgstr_plural[1] = item.msgstr_plural[0]
+
+po_file_object.save("./out/%s-zh_CN.po" % plugin_text_domain)
+po_file_object.save_as_mofile("./out/%s-zh_CN.mo" % plugin_text_domain)
