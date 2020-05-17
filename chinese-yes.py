@@ -208,7 +208,7 @@ class Translator:
         for rough_match in rough_match_list:
             if "-" not in rough_match:
                 continue
-            reg = rough_match.title().replace("-", r"[-|\s]")
+            reg = r"\b" + (rough_match.title().replace("-", r"[-|\s]")) + r"\b"
             match_list = list(set(filter(not_empty, re.findall(reg, text))))
             for value in match_list:
                 exclude_dict[id_generator(exclude_dict)] = value
