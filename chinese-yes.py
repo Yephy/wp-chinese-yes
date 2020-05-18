@@ -3,7 +3,6 @@
 import polib
 import re
 import random
-import http.client
 from urllib import parse
 from tqdm import tqdm
 import sys
@@ -34,19 +33,10 @@ def translate_str(text, exclude=None):
     if not html.unescape(text).strip():
         return ""
 
-    http_client = None
-    memory_query_url = "/wp-content/plugins/gp-super-more/query_memory.php?query=" + parse.quote(text)
-    try:
-        http_client = http.client.HTTPSConnection("wptest.ibadboy.net")
-        http_client.request("GET", memory_query_url)
-        response = http_client.getresponse()
-        result = response.read().decode("utf-8")
-
-        if len(result) != 0 and response.status == 200:
-            return result
-    finally:
-        if http_client:
-            http_client.close()
+    result = requests.get("https://wptest.ibadboy.net/wp-content/plugins/gp-super-more/query_memory.php?query="
+                          + parse.quote(text))
+    if len(result.text) != 0 and result.status_code == 200:
+        return result
 
     # 一些不想被翻译的特殊标记替换成随机数字
     exclude_dict = {}
