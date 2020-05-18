@@ -36,7 +36,7 @@ def translate_str(text, exclude=None):
     result = requests.get("https://wptest.ibadboy.net/wp-content/plugins/gp-super-more/query_memory.php?query="
                           + parse.quote(text))
     if len(result.text) != 0 and result.status_code == 200:
-        return result
+        return result.text
 
     # 一些不想被翻译的特殊标记替换成随机数字
     exclude_dict = {}
