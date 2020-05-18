@@ -13,6 +13,7 @@ import shutil
 import requests
 import execjs
 import html
+import urllib.request
 
 # 全局变量初始化
 plugin_name = ""
@@ -202,15 +203,33 @@ def punctuation_c_trans_to_e(string):
     return string.translate(table)
 
 
+def unzip(filename, output):
+    zip_obj = zipfile.ZipFile(filename)
+    file_list = zip_obj.namelist()
+    for f in file_list:
+        zip_obj.extract(f, output)
+    zip_obj.close()
+
+
+def is_chinese(string):
+    for ch in string:
+        if u'\u4e00' <= ch <= u'\u9fff':
+            return True
+
+    return True
+
+
+def upload_trans(data):
+    data["key"] = ""
+    res = requests.post("https://wptest.ibadboy.net//wp-content/plugins/gp-super-more/upload_memory.php", data)
+    return res.text
+
+
 # 解压插件压缩包到临时目录
 if os.path.isdir(plugin_dir):
     shutil.rmtree(plugin_dir)
 os.mkdir(plugin_dir)
-
-zip_file = zipfile.ZipFile(sys.argv[1])
-zip_list = zip_file.namelist()
-for f in zip_list:
-    zip_file.extract(f, plugin_dir)
+unzip(sys.argv[1], plugin_dir)
 
 filename_list = os.listdir(plugin_dir)
 if len(filename_list) != 1:
@@ -243,8 +262,28 @@ for v in filename_list:
             i += 1
         file.close()
 
+# 从官方查询已有翻译包入记忆库
+zh_cn_package_url = ""
+result = requests.get("https://api.w.org.ibadboy.net/translations/plugins/1.0/?slug=" + plugin_text_domain)
+trans = result.json()["translations"]
+for language in trans:
+    if language["language"] == "zh_CN":
+        zh_cn_package_url = language["package"]
+
+if len(zh_cn_package_url) > 0:
+    urllib.request.urlretrieve(zh_cn_package_url, "./tmp/language.zip")
+    unzip("./tmp/language.zip", "./tmp")
+    po_file_object = polib.pofile("./tmp/%s-zh_CN.po" % plugin_text_domain)
+    print(plugin_name + "插件存在已有汉化包，正在上报记忆库")
+    for item in tqdm(po_file_object):
+        if is_chinese(item.msgstr):
+            upload_trans({"msgid": item.msgid, "msgstr": item.msgstr})
+        if item.msgid_plural:
+            upload_trans({"msgid": item.msgid_plural, "msgstr": item.msgstr_plural[0]})
+
 # 生成pot文件
-os.system("php ./wp-cli.phar i18n make-pot " + plugin_dir)
+print("正在生成翻译模板文件...")
+os.system("php ./wp-cli.phar i18n make-pot %s > ./out/wp-cli.log 2>&1" % plugin_dir)
 filename_list = os.listdir(plugin_dir + plugin_domain_path)
 for v in filename_list:
     pot_file = re.findall(r"[\w]+.pot$", v)
@@ -261,8 +300,8 @@ with open("plugins.txt") as file_obj:
 wp_plugin_name_list = plugins_txt.split("\n")
 
 # 开始翻译流程
+print(plugin_name + "插件开始本地化：")
 po_file_object = polib.pofile(plugin_pot_file)
-print(plugin_name + " 插件开始本地化：")
 
 for item in tqdm(po_file_object):
     if item.comment == "Author of the plugin":
