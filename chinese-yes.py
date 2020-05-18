@@ -26,7 +26,8 @@ wp_plugin_name_list = []
 
 # 异常代码
 _PLUGIN_PACKAGE_FORMAT_ERROR = -10
-_POT_FILE_NOT_FOUND = -11
+_PLUGIN_META_ERROR = -11
+_POT_FILE_NOT_FOUND = -12
 
 
 # 工具函数定义
@@ -261,6 +262,9 @@ for v in filename_list:
                     plugin_domain_path = line[plugin_meta_title_len:plugin_meta_len]
             i += 1
         file.close()
+if not plugin_name or not plugin_text_domain:
+    print("插件元信息读取失败，包错误或不支持国际化")
+    exit(_PLUGIN_META_ERROR)
 
 # 从官方查询已有翻译包入记忆库
 zh_cn_package_url = ""
